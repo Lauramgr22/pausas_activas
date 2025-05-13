@@ -1,0 +1,1 @@
+echo "# pausas_activas"
