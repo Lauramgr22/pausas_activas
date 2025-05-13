@@ -1,0 +1,9 @@
+# Salida de compilación
+/dist
+
+# Dependencias
+/node_modules
+
+# Archivos temporales
+*.log
+*.tsbuildinfo
