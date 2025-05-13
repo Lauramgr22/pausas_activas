@@ -1,0 +1,39 @@
+<!-- Vista para configurar tiempos -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Configuración</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    input, button { font-size: 1.2rem; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Configurar tiempos</h1>
+  <label>Mostrar cada (minutos):</label><br>
+  <input type="number" id="intervalo" /><br>
+  <label>Duración de la pausa (segundos):</label><br>
+  <input type="number" id="duracion" /><br>
+  <button onclick="guardar()">Guardar</button>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    fetch('config.json')
+      .then(res => res.json())
+      .then(cfg => {
+        document.getElementById('intervalo').value = cfg.intervaloMinutos;
+        document.getElementById('duracion').value = cfg.duracionSegundos;
+      });
+
+    function guardar() {
+      const data = {
+        intervaloMinutos: parseInt(document.getElementById('intervalo').value),
+        duracionSegundos: parseInt(document.getElementById('duracion').value)
+      };
+      ipcRenderer.send('guardar-config', data);
+      alert("Configuración guardada.");
+    }
+  </script>
+</body>
+</html>

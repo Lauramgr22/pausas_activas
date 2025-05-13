@@ -1,3 +1,4 @@
+<!-- Vista principal -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -20,24 +21,33 @@
 </head>
 <body>
   <h1>¡Hora de moverse!</h1>
-  <p id="mensaje">Cargando ejercicio...</p>
+  <p id="mensaje">Cargando...</p>
+  <p id="contador"></p>
 
   <script>
     fetch('ejercicios.json')
       .then(res => res.json())
       .then(ejercicios => {
-        const elegido = ejercicios[Math.floor(Math.random() * ejercicios.length)];
-        document.getElementById("mensaje").textContent = elegido;
-      })
-      .catch(err => {
-        document.getElementById("mensaje").textContent = "Error al cargar ejercicios.";
-        console.error(err);
+        const mensaje = ejercicios[Math.floor(Math.random() * ejercicios.length)];
+        document.getElementById("mensaje").textContent = mensaje;
       });
 
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') {
+    // Duración de la pausa en segundos (por defecto 10)
+    const duracion = localStorage.getItem('duracionPausa') || 10;
+    let segundos = duracion;
+
+    const contador = document.getElementById("contador");
+    const intervalo = setInterval(() => {
+      contador.textContent = `Ventana se cerrará en ${segundos} segundos...`;
+      segundos--;
+      if (segundos < 0) {
+        clearInterval(intervalo);
         window.close();
       }
+    }, 1000);
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') window.close();
     });
   </script>
 </body>
