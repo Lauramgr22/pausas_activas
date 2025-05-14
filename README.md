@@ -25,7 +25,6 @@ Una aplicación de escritorio multiplataforma creada con **Electron + TypeScript
 
 ![Configuración](./screenshots/configuracion.png)
 
-> 📁 Coloca tus capturas en la carpeta `screenshots/` (al lado del README)
 
 ---
 
@@ -81,7 +80,7 @@ pausas-activas/
 ## 🧠 Autor
 
 Laura Mercedes Gomez Ruidiaz
-Ingeniera Electronica / Desarrollador Fullstack
+/ Ingeniera Electronica
 
 ---
 
