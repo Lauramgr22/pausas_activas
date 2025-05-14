@@ -6,8 +6,8 @@
   <style>
     body {
       margin: 0;
-      background-color: #0E8C55;
-      color: white;
+      background-color: #F5F5F5;
+      color: #4C5760;
       font-family: sans-serif;
       font-size: 2rem;
       display: flex;
@@ -30,8 +30,13 @@
     #barra-progreso {
       height: 100%;
       width: 0%;
-      background-color: #0EFF0E; /* verde claro al inicio */
+      background-color: #0E8C55;
       transition: width 1s linear, background-color 1s linear;
+    }
+
+    #contador {
+      margin-top: 1rem;
+      font-size: 1.5rem;
     }
   </style>
 </head>
@@ -43,6 +48,8 @@
     <div id="barra-progreso"></div>
   </div>
 
+  <p id="contador"></p>
+
   <script>
     fetch('ejercicios.json')
       .then(res => res.json())
@@ -53,20 +60,21 @@
 
     const duracion = parseInt(localStorage.getItem('duracionPausa') || '10');
     const barra = document.getElementById("barra-progreso");
+    const contador = document.getElementById("contador");
 
     let tiempo = 0;
     const intervalo = setInterval(() => {
       tiempo++;
       const progreso = (tiempo / duracion) * 100;
       barra.style.width = `${progreso}%`;
+      contador.textContent = `${duracion - tiempo} segundos restantes`;
 
-      // Cambiar color según avance
       if (progreso < 50) {
-        barra.style.backgroundColor = "#0EFF0E"; // verde
+        barra.style.backgroundColor = "#0E8C55";
       } else if (progreso < 80) {
-        barra.style.backgroundColor = "#FF8E28"; // naranja
+        barra.style.backgroundColor = "#FF8E28";
       } else {
-        barra.style.backgroundColor = "#E60000"; // rojo
+        barra.style.backgroundColor = "#E60000";
       }
 
       if (tiempo >= duracion) {
