@@ -1,0 +1,99 @@
+<!-- Vista para configurar tiempos -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Configuración</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #F5F5F5;
+      color: #4C5760;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 2rem;
+    }
+
+    h1 {
+      margin-bottom: 2rem;
+      font-size: 2rem;
+      color: #0E8C55;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+
+    input {
+      padding: 0.5rem;
+      width: 100%;
+      max-width: 300px;
+      font-size: 1rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 2rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background-color: #0E8C55;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0C7447;
+    }
+
+    .form {
+      width: 100%;
+      max-width: 320px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Configuración de pausas</h1>
+  <div class="form">
+    <label for="intervalo">Mostrar cada (minutos):</label>
+    <input type="number" id="intervalo" min="1" />
+
+    <label for="duracion">Duración de la pausa (segundos):</label>
+    <input type="number" id="duracion" min="1" />
+
+    <button onclick="guardar()">Guardar</button>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    fetch('config.json')
+      .then(res => res.json())
+      .then(cfg => {
+        document.getElementById('intervalo').value = cfg.intervaloMinutos;
+        document.getElementById('duracion').value = cfg.duracionSegundos;
+      });
+
+    function guardar() {
+      const data = {
+        intervaloMinutos: parseInt(document.getElementById('intervalo').value),
+        duracionSegundos: parseInt(document.getElementById('duracion').value)
+      };
+
+      ipcRenderer.send('guardar-config', data);
+      alert("Configuración guardada.");
+    }
+  </script>
+</body>
+</html>

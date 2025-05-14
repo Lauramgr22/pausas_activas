@@ -1,0 +1,102 @@
+<!-- Vista principal -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pausa Activa</title>
+    <style>
+      body {
+        margin: 0;
+        background-color: #f5f5f5;
+        color: #4c5760;
+        font-family: sans-serif;
+        font-size: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        text-align: center;
+      }
+
+      #barra-contenedor {
+        width: 80%;
+        height: 30px;
+        background-color: #ffffff22;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-top: 2rem;
+      }
+
+      #barra-progreso {
+        height: 100%;
+        width: 0%;
+        background-color: #0e8c55;
+        transition: width 1s linear, background-color 1s linear;
+      }
+
+      #contador {
+        margin-top: 1rem;
+        font-size: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>¡Hora de moverse!</h1>
+    <p id="mensaje">Cargando...</p>
+
+    <div id="barra-contenedor">
+      <div id="barra-progreso"></div>
+    </div>
+
+    <p id="contador"></p>
+
+    <script>
+      fetch("ejercicios.json")
+        .then((res) => res.json())
+        .then((ejercicios) => {
+          const mensaje =
+            ejercicios[Math.floor(Math.random() * ejercicios.length)];
+          document.getElementById("mensaje").textContent = mensaje;
+        });
+
+      const barra = document.getElementById("barra-progreso");
+      const contador = document.getElementById("contador");
+
+      let duracion = 10; // valor por defecto en caso de error
+
+      fetch("config.json")
+        .then((res) => res.json())
+        .then((cfg) => {
+          duracion = cfg.duracionSegundos;
+          iniciarBarra(duracion);
+        })
+        .catch(() => iniciarBarra(duracion)); // fallback en caso de error
+
+      function iniciarBarra(duracion) {
+        const barra = document.getElementById("barra-progreso");
+        const contador = document.getElementById("contador");
+        let tiempo = 0;
+
+        const intervalo = setInterval(() => {
+          tiempo++;
+          const progreso = (tiempo / duracion) * 100;
+          barra.style.width = `${progreso}%`;
+          contador.textContent = `${duracion - tiempo} segundos restantes`;
+
+          if (progreso < 50) barra.style.backgroundColor = "#0EFF0E";
+          else if (progreso < 80) barra.style.backgroundColor = "#FF8E28";
+          else barra.style.backgroundColor = "#E60000";
+
+          if (tiempo >= duracion) {
+            clearInterval(intervalo);
+            window.close();
+          }
+        }, 1000);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") window.close();
+      });
+    </script>
+  </body>
+</html>
