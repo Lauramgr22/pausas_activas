@@ -1,7 +1,6 @@
-import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron';
+import { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
-import { Tray, Menu } from 'electron';
 
 let pausaWin: BrowserWindow | null = null;
 let configWin: BrowserWindow | null = null;
@@ -18,6 +17,7 @@ function mostrarPausa(duracion: number) {
     fullscreen: true,
     frame: false,
     alwaysOnTop: true,
+    icon: path.join(__dirname, '../public/icon.png'),
     webPreferences: {
       nodeIntegration: true
     }
@@ -25,20 +25,32 @@ function mostrarPausa(duracion: number) {
 
   pausaWin.loadFile(path.join(__dirname, '../public/index.html'));
 
-  setTimeout(() => {
-    pausaWin?.close();
+  pausaWin.on('closed', () => {
     pausaWin = null;
+  });
+  
+  const ventanaRef = pausaWin; // capturamos la referencia
+
+  setTimeout(() => {
+    if (ventanaRef && !ventanaRef.isDestroyed()) {
+      ventanaRef.close();
+    }
   }, duracion * 1000);
+
 }
 
 function abrirConfiguracion() {
   if (configWin) {
-    configWin.show(); // Si ya existe, solo la mostramos
+    configWin.show();
+    configWin.focus();
     return;
   }
+
   configWin = new BrowserWindow({
     width: 400,
     height: 300,
+    show: false,
+    icon: path.join(__dirname, '../public/icon.png'),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -46,26 +58,34 @@ function abrirConfiguracion() {
   });
 
   configWin.loadFile(path.join(__dirname, '../public/config.html'));
-  
+
+  configWin.once('ready-to-show', () => {
+    configWin?.show();
+  });
+
   configWin.on('close', (e) => {
-    e.preventDefault();       
-    configWin?.hide();       
+    e.preventDefault();
+    configWin?.hide();
   });
 
   configWin.on('closed', () => {
-    configWin = null;        
+    configWin = null;
   });
 }
 
 app.whenReady().then(() => {
   const iconPath = path.join(__dirname, '../public/icon.png');
   tray = new Tray(iconPath);
+
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Abrir configuración', click: () => abrirConfiguracion() },
     { label: 'Salir', click: () => app.quit() }
   ]);
+
   tray.setToolTip('Pausas Activas');
   tray.setContextMenu(contextMenu);
+
+  tray.on('double-click', () => abrirConfiguracion());
 
   const config = cargarConfiguracion();
   mostrarPausa(config.duracionSegundos);
@@ -80,9 +100,8 @@ app.whenReady().then(() => {
   globalShortcut.register('Control+Shift+C', abrirConfiguracion);
 });
 
-
 app.on('window-all-closed', () => {
-  //if (process.platform !== 'darwin') app.quit();
+  // No cerramos la app para mantenerla activa en segundo plano
 });
 
 ipcMain.on('guardar-config', (event, nuevaConfig) => {

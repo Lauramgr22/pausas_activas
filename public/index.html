@@ -17,12 +17,31 @@
       height: 100vh;
       text-align: center;
     }
+
+    #barra-contenedor {
+      width: 80%;
+      height: 30px;
+      background-color: #ffffff22;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-top: 2rem;
+    }
+
+    #barra-progreso {
+      height: 100%;
+      width: 0%;
+      background-color: #0EFF0E; /* verde claro al inicio */
+      transition: width 1s linear, background-color 1s linear;
+    }
   </style>
 </head>
 <body>
   <h1>¡Hora de moverse!</h1>
   <p id="mensaje">Cargando...</p>
-  <p id="contador"></p>
+
+  <div id="barra-contenedor">
+    <div id="barra-progreso"></div>
+  </div>
 
   <script>
     fetch('ejercicios.json')
@@ -32,15 +51,25 @@
         document.getElementById("mensaje").textContent = mensaje;
       });
 
-    // Duración de la pausa en segundos (por defecto 10)
-    const duracion = localStorage.getItem('duracionPausa') || 10;
-    let segundos = duracion;
+    const duracion = parseInt(localStorage.getItem('duracionPausa') || '10');
+    const barra = document.getElementById("barra-progreso");
 
-    const contador = document.getElementById("contador");
+    let tiempo = 0;
     const intervalo = setInterval(() => {
-      contador.textContent = `Ventana se cerrará en ${segundos} segundos...`;
-      segundos--;
-      if (segundos < 0) {
+      tiempo++;
+      const progreso = (tiempo / duracion) * 100;
+      barra.style.width = `${progreso}%`;
+
+      // Cambiar color según avance
+      if (progreso < 50) {
+        barra.style.backgroundColor = "#0EFF0E"; // verde
+      } else if (progreso < 80) {
+        barra.style.backgroundColor = "#FF8E28"; // naranja
+      } else {
+        barra.style.backgroundColor = "#E60000"; // rojo
+      }
+
+      if (tiempo >= duracion) {
         clearInterval(intervalo);
         window.close();
       }
