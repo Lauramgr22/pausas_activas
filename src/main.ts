@@ -5,12 +5,21 @@ import * as fs from 'fs';
 let pausaWin: BrowserWindow | null = null;
 let configWin: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let globalInterval: NodeJS.Timeout | null = null;
+
+const configPath = path.join(__dirname, '../public/config.json');
 
 function cargarConfiguracion() {
-  const configPath = path.join(__dirname, '../public/config.json');
+  if (!fs.existsSync(configPath)) {
+    const defaultConfig = { intervaloMinutos: 10, duracionSegundos: 20 };
+    fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));
+    return defaultConfig;
+  }
   const raw = fs.readFileSync(configPath, 'utf-8');
   return JSON.parse(raw);
 }
+
+let config = cargarConfiguracion();
 
 function mostrarPausa(duracion: number) {
   pausaWin = new BrowserWindow({
@@ -28,15 +37,13 @@ function mostrarPausa(duracion: number) {
   pausaWin.on('closed', () => {
     pausaWin = null;
   });
-  
-  const ventanaRef = pausaWin; // capturamos la referencia
 
+  const ventanaRef = pausaWin;
   setTimeout(() => {
     if (ventanaRef && !ventanaRef.isDestroyed()) {
       ventanaRef.close();
     }
   }, duracion * 1000);
-
 }
 
 function abrirConfiguracion() {
@@ -73,38 +80,54 @@ function abrirConfiguracion() {
   });
 }
 
+function iniciarPausas() {
+  if (globalInterval) clearInterval(globalInterval);
+  globalInterval = setInterval(() => {
+    if (!pausaWin) {
+      const cfg = cargarConfiguracion();
+      mostrarPausa(cfg.duracionSegundos);
+    }
+  }, config.intervaloMinutos * 60 * 1000);
+}
+
+
 app.whenReady().then(() => {
   const iconPath = path.join(__dirname, '../public/icon.png');
   tray = new Tray(iconPath);
 
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Abrir configuración', click: () => abrirConfiguracion() },
-    { label: 'Salir', click: () => app.quit() }
+    {
+      label: 'Salir',
+      click: () => {
+        tray?.destroy();
+        globalShortcut.unregisterAll();
+        if (globalInterval) clearInterval(globalInterval);
+        pausaWin?.destroy();
+        configWin?.destroy();
+    
+        app.quit();
+        app.exit(0); // Forzar cierre
+      }
+    }
+    
   ]);
 
   tray.setToolTip('Pausas Activas');
   tray.setContextMenu(contextMenu);
-
   tray.on('double-click', () => abrirConfiguracion());
 
-  const config = cargarConfiguracion();
-  mostrarPausa(config.duracionSegundos);
-
-  setInterval(() => {
-    if (!pausaWin) {
-      const nuevaConfig = cargarConfiguracion();
-      mostrarPausa(nuevaConfig.duracionSegundos);
-    }
-  }, config.intervaloMinutos * 60 * 1000);
-
+  mostrarPausa(cargarConfiguracion().duracionSegundos);
+  iniciarPausas();
   globalShortcut.register('Control+Shift+C', abrirConfiguracion);
 });
 
 app.on('window-all-closed', () => {
-  // No cerramos la app para mantenerla activa en segundo plano
+  // Mantener la app corriendo en segundo plano
 });
 
 ipcMain.on('guardar-config', (event, nuevaConfig) => {
-  const ruta = path.join(__dirname, '../public/config.json');
-  fs.writeFileSync(ruta, JSON.stringify(nuevaConfig, null, 2), 'utf-8');
+  config = { ...config, ...nuevaConfig };
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
+  iniciarPausas();
 });
