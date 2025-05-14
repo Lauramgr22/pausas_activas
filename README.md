@@ -68,6 +68,8 @@ pausas-activas/
 │   ├── config.json        # Configuración editable
 │   ├── index.html         # Vista de pausa
 │   ├── config.html        # Interfaz de configuración
+│   ├── ejercicios.json    # Listado de ejercicios a realizar
+│   ├── icon.png           # Imagen para configuracion
 ├── src/
 │   └── main.ts            # Lógica principal de Electron
 ├── screenshots/           # Capturas para el README
